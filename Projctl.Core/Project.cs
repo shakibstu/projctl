@@ -35,26 +35,7 @@
         public bool IsSupported => _project != null;
         public string Name { get; }
 
-        public bool ContainsFiles(CompositeGlob files)
-        {
-            var project = GetProject();
-
-            if (project.Items.Any(i => files.IsMatch(i.GetFullPath())))
-            {
-                return true;
-            }
-
-            var propertyValue = project.GetPropertyValue("TargetFramework");
-
-            if (string.IsNullOrEmpty(propertyValue) || !propertyValue.StartsWith("netcoreapp", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            // Hack! There is no easy way to make MSBuild resolve project items, so we fetch them from disk
-            var projectFiles = Directory.EnumerateFiles(DirectoryPath, "*", SearchOption.AllDirectories).ToList();
-            return projectFiles.Any(f => files.IsMatch(f));
-        }
+        public bool ContainsFiles(CompositeGlob files) => GetProject().Items.Any(i => files.IsMatch(i.GetFullPath()));
 
         public ICollection<ProjectItem> GetItems(string itemType) => GetProject().GetItems(itemType);
 

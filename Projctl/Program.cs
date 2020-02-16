@@ -17,6 +17,8 @@
     {
         public static RootCommand BuildCli()
         {
+            Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+
             var rootCommand = new RootCommand();
             var getProjectsCommand = new Command("get-projects") { Handler = CommandHandler.Create<string[]>(GetProjects) };
 

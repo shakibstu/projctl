@@ -34,7 +34,7 @@ namespace Projctl.Test
         [TestMethod]
         public async Task TestMethod1()
         {
-            await _parser.InvokeAsync("get-projects --containing-files 'TestProjectA\\Class1.cs'\n'TestProjectA\\Class2.cs'", _console);
+            await _parser.InvokeAsync("get-projects --containing-files TestProjectA\\Class1.cs\nTestProjectA\\Class2.cs", _console);
         }
     }
 }
