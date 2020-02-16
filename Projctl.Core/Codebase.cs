@@ -25,7 +25,7 @@
             return _projects.Where(p => p.IsSupported && p.ContainsFiles(filesGlob));
         }
 
-        public void Load(string path = null)
+        public void LoadFolder(string path = null)
         {
             _path = path;
 
@@ -34,6 +34,7 @@
                 _path = Directory.GetCurrentDirectory();
             }
 
+            // TODO: support all project types
             var projectFiles = Directory.EnumerateFileSystemEntries(_path, "*.csproj", SearchOption.AllDirectories);
 
             foreach (var projectFile in projectFiles)
@@ -42,6 +43,16 @@
 
                 _projects.Add(project);
             }
+        }
+
+        public void LoadSolution(string solutionFilePath)
+        {
+            _path = Path.GetDirectoryName(solutionFilePath);
+            var solution = new Solution(solutionFilePath, _projectFactory);
+
+            var projects = solution.GetAllProjects(true);
+
+            _projects.AddRange(projects.Except(_projects));
         }
     }
 }

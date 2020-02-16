@@ -32,9 +32,15 @@ namespace Projctl.Test
         }
 
         [TestMethod]
-        public async Task TestMethod1()
+        public async Task ShouldFindOneProjectInFolder()
         {
             await _parser.InvokeAsync("get-projects --containing-files TestProjectA\\Class1.cs\nTestProjectA\\Class2.cs", _console);
+        }
+
+        [TestMethod]
+        public async Task ShouldFindOneProjectInSolution()
+        {
+            await _parser.InvokeAsync("get-projects --solution Test.sln --containing-files TestProjectA\\Class1.cs\nTestProjectA\\Class2.cs", _console);
         }
     }
 }

@@ -4,9 +4,11 @@
 
     using System;
     using System.CommandLine;
-    using System.CommandLine.Invocation;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+
+    using Microsoft.Build.Locator;
 
     using Projctl.Core;
 
@@ -17,28 +19,33 @@
     {
         public static RootCommand BuildCli()
         {
-            Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+            MSBuildLocator.RegisterDefaults();
 
-            var rootCommand = new RootCommand();
-            var getProjectsCommand = new Command("get-projects") { Handler = CommandHandler.Create<string[]>(GetProjects) };
-
-            getProjectsCommand.Add(new Option("--containing-files")
+            return new RootCommand
             {
-                Argument = new Argument<string[]> { Arity = new ArgumentArity(0, int.MaxValue) }
-            });
-
-            getProjectsCommand.Add(
-                new Option("--with-dependencies") { Argument = new Argument<string[]> { Arity = new ArgumentArity(0, int.MaxValue) } });
-
-            rootCommand.Add(getProjectsCommand);
-            return rootCommand;
+                new Command("get-projects")
+                {
+                    new Option("--solution") { Argument = new Argument<FileInfo>().ExistingOnly() },
+                    new Option("--containing-files")
+                    {
+                        Argument = new Argument<string[]> { Arity = new ArgumentArity(0, int.MaxValue) }
+                    }
+                }.WithHandler<FileInfo, string[]>(GetProjects)
+            };
         }
 
-        private static void GetProjects(string[] containingFiles)
+        private static void GetProjects(FileInfo solution, string[] containingFiles)
         {
             var codebase = new Codebase(new ProjectFactory());
 
-            codebase.Load();
+            if (solution != null)
+            {
+                codebase.LoadSolution(solution.FullName);
+            }
+            else
+            {
+                codebase.LoadFolder();
+            }
 
             var projects = codebase.GetProjectsContainingFiles(containingFiles).ToList();
 
