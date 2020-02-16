@@ -14,11 +14,9 @@
         string DirectoryPath { get; }
         string FullPath { get; }
         bool IsDirty { get; }
-        bool IsSupported { get; }
         string Name { get; }
 
         bool ContainsFiles(CompositeGlob files);
-        IEnumerable<IProject> GetAllReferencedProjects(bool includeUnsupported = false);
-        IEnumerable<IProject> GetReferencedProjects();
+        IEnumerable<IProject> GetReferencedProjects(bool recursive = false);
     }
 }

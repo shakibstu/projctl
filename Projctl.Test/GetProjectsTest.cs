@@ -12,7 +12,7 @@ namespace Projctl.Test
 
 
     [TestClass]
-    public class GetProjectsTest
+    public class GetProjectsTest : TestBase
     {
         private TestConsole _console;
         private string _currentDirectory;
@@ -20,27 +20,30 @@ namespace Projctl.Test
 
         public GetProjectsTest()
         {
+            _currentDirectory = Directory.GetCurrentDirectory();
             _console = new TestConsole();
             _parser = new Parser(Program.BuildCli());
         }
 
         [TestInitialize]
-        public void Init()
-        {
-            _currentDirectory = Directory.GetCurrentDirectory();
-            Directory.SetCurrentDirectory(Path.Combine(_currentDirectory, "TestSolution"));
-        }
+        public void Init() => Directory.SetCurrentDirectory(Path.Combine(_currentDirectory, "TestSolution"));
 
         [TestMethod]
-        public async Task ShouldFindOneProjectInFolder()
-        {
+        public async Task ShouldFindOneProjectInFolder() =>
             await _parser.InvokeAsync("get-projects --containing-files TestProjectA\\Class1.cs\nTestProjectA\\Class2.cs", _console);
-        }
 
         [TestMethod]
         public async Task ShouldFindOneProjectInSolution()
         {
-            await _parser.InvokeAsync("get-projects --solution Test.sln --containing-files TestProjectA\\Class1.cs\nTestProjectA\\Class2.cs", _console);
+            await _parser.InvokeAsync(
+                "get-projects --solution Test.sln --containing-files TestProjectA\\Class1.cs\nTestProjectA\\Class2.cs",
+                _console);
+        }
+
+        [TestCleanup]
+        public void TestCleanUp()
+        {
+            Directory.SetCurrentDirectory(_currentDirectory);
         }
     }
 }

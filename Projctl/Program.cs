@@ -17,11 +17,8 @@
 
     internal class Program
     {
-        public static RootCommand BuildCli()
-        {
-            MSBuildLocator.RegisterDefaults();
-
-            return new RootCommand
+        public static RootCommand BuildCli() =>
+            new RootCommand
             {
                 new Command("get-projects")
                 {
@@ -32,7 +29,6 @@
                     }
                 }.WithHandler<FileInfo, string[]>(GetProjects)
             };
-        }
 
         private static void GetProjects(FileInfo solution, string[] containingFiles)
         {
@@ -55,6 +51,11 @@
             }
         }
 
-        private static async Task<int> Main(string[] args) => await BuildCli().InvokeAsync(args);
+        private static async Task<int> Main(string[] args)
+        {
+            MSBuildLocator.RegisterDefaults();
+
+            return await BuildCli().InvokeAsync(args);
+        }
     }
 }

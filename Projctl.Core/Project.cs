@@ -2,7 +2,6 @@
 {
     #region Namespace Imports
 
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -17,7 +16,7 @@
 
     public class Project : IProject
     {
-        [CanBeNull]
+        [NotNull]
         private readonly Microsoft.Build.Evaluation.Project _project;
 
         private readonly IProjectFactory _projectFactory;
@@ -26,65 +25,44 @@
         private List<IProject> _referencedProjects;
 
         public Project(IProjectFactory projectFactory, Microsoft.Build.Evaluation.Project msbuildProject)
-            : this(projectFactory, msbuildProject.FullPath) =>
-            _project = msbuildProject;
-
-        public Project(IProjectFactory projectFactory, string fullPath)
         {
-            FullPath = fullPath;
+            _project = msbuildProject;
             _projectFactory = projectFactory;
-            Name = Path.GetFileNameWithoutExtension(FullPath);
         }
+
 
         public string DirectoryPath => _project?.DirectoryPath ?? Path.GetDirectoryName(FullPath);
-        public string FullPath { get; }
-        public bool IsDirty => _project?.IsDirty ?? false;
-        public bool IsSupported => _project != null;
-        public string Name { get; }
+        public string FullPath => _project.FullPath;
+        public bool IsDirty => _project.IsDirty;
+        public string Name => Path.GetFileNameWithoutExtension(FullPath);
 
-        public bool ContainsFiles(CompositeGlob files) => GetProject().Items.Any(i => files.IsMatch(i.GetFullPath()));
+        public bool ContainsFiles(CompositeGlob files) => _project.Items.Any(i => files.IsMatch(i.GetFullPath()));
 
-        public IEnumerable<IProject> GetAllReferencedProjects(bool includeUnsupported = false)
+        public ICollection<ProjectItem> GetItems(string itemType) => _project.GetItems(itemType);
+
+        public ProjectProperty GetProperty(string name) => _project.GetProperty(name);
+
+        public IEnumerable<IProject> GetReferencedProjects(bool recursive = false)
         {
-            if (includeUnsupported && !IsSupported)
-            {
-                return Enumerable.Empty<Project>();
-            }
+            var projects = LoadProjectReferences().ToList();
 
-            var projects = GetReferencedProjects().Where(p => includeUnsupported || p.IsSupported).ToList();
-
-            return projects.Concat(projects.SelectMany(p => p.GetAllReferencedProjects(includeUnsupported))).Distinct();
+            return !recursive ? projects : projects.Concat(projects.SelectMany(p => p.GetReferencedProjects(true))).Distinct();
         }
 
-        public ICollection<ProjectItem> GetItems(string itemType) => GetProject().GetItems(itemType);
-
-        public ProjectProperty GetProperty(string name) => GetProject().GetProperty(name);
-
-        public IEnumerable<IProject> GetReferencedProjects()
+        public IEnumerable<IProject> LoadProjectReferences()
         {
             if (_referencedProjects != null)
             {
                 return _referencedProjects;
             }
 
-            _referencedProjects = GetProject()
-                .GetProjectReferences()
+            _referencedProjects = _project.GetProjectReferences()
                 .Select(p => _projectFactory.Load(Path.GetFullPath(Path.Combine(DirectoryPath, p.EvaluatedInclude))))
                 .Where(p => p != null)
                 .Distinct()
                 .ToList();
 
             return _referencedProjects;
-        }
-
-        private Microsoft.Build.Evaluation.Project GetProject()
-        {
-            if (_project == null)
-            {
-                throw new InvalidOperationException("The project could not be loaded.");
-            }
-
-            return _project;
         }
     }
 }

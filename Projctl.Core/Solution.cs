@@ -5,7 +5,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
 
     using JetBrains.Annotations;
 
@@ -14,7 +13,7 @@
     #endregion
 
 
-    public class Solution
+    public class Solution : ISolution
     {
         private readonly IProjectFactory _projectFactory;
         private SolutionFile _file;
@@ -32,14 +31,14 @@
         public string FileName => Path.GetFileName(FullPath);
         public string FullPath { get; }
 
-        public IEnumerable<IProject> GetAllProjects(bool includeUnsupported = false)
+        public IEnumerable<IProject> GetProjects(bool recursive = false)
         {
-            var projects = GetProjects().Where(p => includeUnsupported || p.IsSupported).ToList();
+            var projects = LoadProjects().ToList();
 
-            return projects.Concat(projects.SelectMany(p => p.GetAllReferencedProjects(includeUnsupported))).Distinct();
+            return !recursive ? projects : projects.Concat(projects.SelectMany(p => p.GetReferencedProjects(true))).Distinct();
         }
 
-        public List<IProject> GetProjects()
+        private IEnumerable<IProject> LoadProjects()
         {
             if (_projects != null)
             {
@@ -62,15 +61,5 @@
 
             return _projects;
         }
-    }
-
-
-    internal static class SolutionFileExtensions
-    {
-        public static string GetFullPath(this SolutionFile solution) =>
-            solution.GetType().GetProperty("FullPath", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(solution) as string;
-
-        public static IEnumerable<ProjectInSolution> GetMsBuildProjects(this SolutionFile solution) =>
-            solution.ProjectsInOrder.Where(p => p.ProjectType != SolutionProjectType.SolutionFolder);
     }
 }

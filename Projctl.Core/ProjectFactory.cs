@@ -12,7 +12,7 @@
 
     public class ProjectFactory : IProjectFactory
     {
-        private readonly Dictionary<string, Project> _projectsByFileName = new Dictionary<string, Project>();
+        private readonly Dictionary<string, IProject> _projectsByFileName = new Dictionary<string, IProject>();
         private ProjectCollection _projectCollection;
 
         public ProjectFactory() =>
@@ -23,7 +23,7 @@
         {
             projectFile = Path.GetFullPath(projectFile);
 
-            Project project;
+            IProject project;
 
             if (_projectsByFileName.TryGetValue(projectFile, out project))
             {
@@ -50,7 +50,7 @@
             }
             catch
             {
-                project = new Project(this, projectFile);
+                project = new UnavailableProject(projectFile);
             }
 
             _projectsByFileName.Add(projectFile, project);
