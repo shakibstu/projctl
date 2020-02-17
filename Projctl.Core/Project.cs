@@ -36,7 +36,17 @@
         public bool IsDirty => _project.IsDirty;
         public string Name => Path.GetFileNameWithoutExtension(FullPath);
 
-        public bool ContainsFiles(CompositeGlob files) => _project.Items.Any(i => files.IsMatch(i.GetFullPath()));
+        public bool ContainsFiles(CompositeGlob files, string[] projectItemTypes = null)
+        {
+            IEnumerable<ProjectItem> projectItems = _project.Items;
+
+            if (projectItemTypes != null && projectItemTypes.Length > 0)
+            {
+                projectItems = projectItems.Where(i => projectItemTypes.Contains(i.ItemType));
+            }
+
+            return projectItems.Any(i => files.IsMatch(i.GetFullPath()));
+        }
 
         public ICollection<ProjectItem> GetItems(string itemType) => _project.GetItems(itemType);
 

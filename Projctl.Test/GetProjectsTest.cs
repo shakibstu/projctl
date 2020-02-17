@@ -2,9 +2,9 @@ namespace Projctl.Test
 {
     #region Namespace Imports
 
-    using System.CommandLine.Parsing;
-    using System.IO;
     using System.Threading.Tasks;
+
+    using FluentAssertions;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,36 +14,35 @@ namespace Projctl.Test
     [TestClass]
     public class GetProjectsTest : TestBase
     {
-        private TestConsole _console;
-        private string _currentDirectory;
-        private Parser _parser;
-
-        public GetProjectsTest()
-        {
-            _currentDirectory = Directory.GetCurrentDirectory();
-            _console = new TestConsole();
-            _parser = new Parser(Program.BuildCli());
-        }
-
-        [TestInitialize]
-        public void Init() => Directory.SetCurrentDirectory(Path.Combine(_currentDirectory, "TestSolution"));
+        private const string _testProjectA = "TestSolution\\TestProjectA\\TestProjectA.csproj";
+        private const string _testProjectAClass1Path = "TestSolution\\TestProjectA\\Class1.cs";
+        private const string _testProjectAClass2Path = "TestSolution\\TestProjectA\\Class2.cs";
+        private const string _testSlnPath = "TestSolution\\Test.sln";
 
         [TestMethod]
-        public async Task ShouldFindOneProjectInFolder() =>
-            await _parser.InvokeAsync("get-projects --containing-files TestProjectA\\Class1.cs\nTestProjectA\\Class2.cs", _console);
-
-        [TestMethod]
-        public async Task ShouldFindOneProjectInSolution()
+        public async Task ShouldFindOneProjectContainingCompileProjectItemInSolution()
         {
-            await _parser.InvokeAsync(
-                "get-projects --solution Test.sln --containing-files TestProjectA\\Class1.cs\nTestProjectA\\Class2.cs",
-                _console);
+            await InvokeAsync(
+                $"get-projects --solution {_testSlnPath} --containing-files {_testProjectAClass1Path}\n{_testProjectAClass2Path} --project-item-types Compile");
+
+            Out.Should().HaveCount(1).And.Contain(_testProjectA);
         }
 
-        [TestCleanup]
-        public void TestCleanUp()
+        [TestMethod]
+        public async Task ShouldFindOneProjectContainingFileInFolder()
         {
-            Directory.SetCurrentDirectory(_currentDirectory);
+            await InvokeAsync($"get-projects --containing-files {_testProjectAClass1Path}\n{_testProjectAClass2Path}");
+
+            Out.Should().HaveCount(1).And.Contain(_testProjectA);
+        }
+
+        [TestMethod]
+        public async Task ShouldFindOneProjectContainingFileInSolution()
+        {
+            await InvokeAsync(
+                $"get-projects --solution {_testSlnPath} --containing-files {_testProjectAClass1Path}\n{_testProjectAClass2Path}");
+
+            Out.Should().HaveCount(1).And.Contain(_testProjectA);
         }
     }
 }

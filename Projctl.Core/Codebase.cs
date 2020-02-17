@@ -14,41 +14,50 @@
     public class Codebase
     {
         private readonly IProjectFactory _projectFactory;
-        private string _path;
         private List<IProject> _projects = new List<IProject>();
         private List<ISolution> _solutions = new List<ISolution>();
 
-        public Codebase(IProjectFactory projectFactory) => _projectFactory = projectFactory;
-
-        public IEnumerable<IProject> GetProjectsContainingFiles(string[] containingFiles)
+        public Codebase(IProjectFactory projectFactory)
         {
-            var filesGlob = new CompositeGlob(containingFiles.Select(s => MSBuildGlob.Parse(_path, s)));
-            return _projects.Where(p => p.ContainsFiles(filesGlob));
+            _projectFactory = projectFactory;
+            FullPath = Directory.GetCurrentDirectory();
+        }
+
+        public string FullPath { get; private set; }
+
+        public IEnumerable<IProject> GetProjectReferences(string[] forProjects, bool recursive)
+        {
+            var filesGlob = GetFilesGlob(forProjects);
+
+            var projects = _projects.Where(p => filesGlob.IsMatch(p.FullPath))
+                .SelectMany(p => p.GetReferencedProjects(recursive))
+                .Distinct()
+                .ToList();
+
+            return projects;
+        }
+
+        public IEnumerable<IProject> GetProjectsContainingFiles(string[] containingFiles, string[] projectItemTypes = null)
+        {
+            var filesGlob = GetFilesGlob(containingFiles);
+            return _projects.Where(p => p.ContainsFiles(filesGlob, projectItemTypes));
         }
 
         public void LoadFolder(string path = null)
         {
-            _path = path;
-
-            if (string.IsNullOrEmpty(_path))
+            if (!string.IsNullOrEmpty(path))
             {
-                _path = Directory.GetCurrentDirectory();
+                FullPath = Path.GetFullPath(path);
             }
 
             // TODO: support all project types
-            var projectFiles = Directory.EnumerateFileSystemEntries(_path, "*.csproj", SearchOption.AllDirectories);
+            var projectFiles = Directory.EnumerateFileSystemEntries(FullPath, "*.csproj", SearchOption.AllDirectories);
 
-            foreach (var projectFile in projectFiles)
-            {
-                var project = _projectFactory.Load(projectFile);
-
-                _projects.Add(project);
-            }
+            _projects.AddRange(projectFiles.Select(projectFile => _projectFactory.Load(projectFile)));
         }
 
         public void LoadSolution(string solutionFilePath)
         {
-            _path = Path.GetDirectoryName(solutionFilePath);
             var solution = new Solution(solutionFilePath, _projectFactory);
             _solutions.Add(solution);
 
@@ -56,5 +65,8 @@
 
             _projects.AddRange(projects.Except(_projects));
         }
+
+        private CompositeGlob GetFilesGlob(string[] searchPatterns) =>
+            new CompositeGlob(searchPatterns.Select(s => MSBuildGlob.Parse(FullPath, s)));
     }
 }

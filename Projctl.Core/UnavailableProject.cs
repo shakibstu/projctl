@@ -24,7 +24,7 @@
         public bool IsDirty => false;
         public string Name { get; }
 
-        public bool ContainsFiles(CompositeGlob files) => false;
+        public bool ContainsFiles(CompositeGlob files, string[] projectItemTypes = null) => false;
         public IEnumerable<IProject> GetReferencedProjects(bool recursive = false) => Enumerable.Empty<IProject>();
     }
 }
