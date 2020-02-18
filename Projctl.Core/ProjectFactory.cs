@@ -5,6 +5,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
 
     using Microsoft.Build.Evaluation;
 
@@ -20,9 +21,8 @@
         public ProjectFactory() =>
             _projectCollection = new ProjectCollection(ToolsetDefinitionLocations.Local | ToolsetDefinitionLocations.Registry);
 
-        public IEnumerable<IProject> Projects => _projectsByFileName.Values;
-
-        public IEnumerable<ISolution> Solutions => _solutionsByFileName.Values;
+        public IEnumerable<IProject> Projects => _projectsByFileName.Values.ToList();
+        public IEnumerable<ISolution> Solutions => _solutionsByFileName.Values.ToList();
 
         public bool Load(string fileName)
         {

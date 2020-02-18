@@ -11,6 +11,7 @@
     {
         string FileName { get; }
         string FullPath { get; }
+        string DirectoryPath { get; }
         IEnumerable<IProject> GetProjects(bool recursive = false);
     }
 }

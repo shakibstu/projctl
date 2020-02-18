@@ -18,7 +18,7 @@ namespace Projctl.Test
         public async Task ShouldFindOneProjectContainingCompileProjectItemInSolution()
         {
             await InvokeAsync(
-                $"get-projects {TestSlnPath} --containing-files {ProjectAClass1Path}\n{ProjectAClass2Path} --project-item-types Compile");
+                $"get-projects {TestSolution} --containing-files {ProjectAClass1Path}\n{ProjectAClass2Path} --project-item-types Compile");
 
             Out.Should().HaveCount(1).And.Contain(ProjectA);
         }
@@ -34,7 +34,7 @@ namespace Projctl.Test
         [TestMethod]
         public async Task ShouldFindOneProjectContainingFileInSolution()
         {
-            await InvokeAsync($"get-projects {TestSlnPath} --containing-files {ProjectAClass1Path}\n{ProjectAClass2Path}");
+            await InvokeAsync($"get-projects {TestSolution} --containing-files {ProjectAClass1Path}\n{ProjectAClass2Path}");
 
             Out.Should().HaveCount(1).And.Contain(ProjectA);
         }

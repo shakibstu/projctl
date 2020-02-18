@@ -18,15 +18,22 @@ namespace Projctl.Test
     public class TestBase
     {
         protected const string ProjectA = "TestSolution\\ProjectA\\ProjectA.csproj";
+
         protected const string ProjectAClass1Path = "TestSolution\\ProjectA\\Class1.cs";
         protected const string ProjectAClass2Path = "TestSolution\\ProjectA\\Class2.cs";
-        protected const string TestSlnPath = "TestSolution\\Test.sln";
+        protected const string ProjectB = "TestSolution\\ProjectB\\ProjectB.csproj";
+        protected const string ProjectC = "TestSolution\\ProjectC\\ProjectC.csproj";
+        protected const string ProjectD = "TestSolution\\ProjectD\\ProjectD.csproj";
+
+        protected const string TestSolution = "TestSolution\\Test.sln";
+        protected const string TestSolutionDirectory = "TestSolution\\";
 
         private TestConsole _console;
         private Parser _parser;
 
         protected string Error => _console.Error.ToString();
         protected string[] Out => _console.Out.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        protected string OutString => _console.Out.ToString();
 
         [AssemblyInitialize]
         public static void AssemblyInitialize(TestContext context)

@@ -28,6 +28,7 @@
             _projectFactory = projectFactory;
         }
 
+        public string DirectoryPath => Path.GetDirectoryName(FullPath);
         public string FileName => Path.GetFileName(FullPath);
         public string FullPath { get; }
 
