@@ -14,8 +14,6 @@
     public class Codebase
     {
         private readonly IProjectFactory _projectFactory;
-        private List<IProject> _projects = new List<IProject>();
-        private List<ISolution> _solutions = new List<ISolution>();
 
         public Codebase(IProjectFactory projectFactory)
         {
@@ -25,14 +23,21 @@
 
         public string FullPath { get; private set; }
 
-        public IEnumerable<IProject> GetProjectReferences(string[] forProjects, bool recursive)
+        public void Discover(string[] projects)
         {
-            var filesGlob = GetFilesGlob(forProjects);
+            var filesGlob = GetFilesGlob(projects);
 
-            var projects = _projects.Where(p => filesGlob.IsMatch(p.FullPath))
-                .SelectMany(p => p.GetReferencedProjects(recursive))
-                .Distinct()
-                .ToList();
+            var files = Directory.EnumerateFileSystemEntries(FullPath, "*.*", SearchOption.AllDirectories).Where(f => filesGlob.IsMatch(f));
+
+            foreach (var file in files)
+            {
+                _projectFactory.Load(file);
+            }
+        }
+
+        public IEnumerable<IProject> GetProjectReferences(bool recursive)
+        {
+            var projects = _projectFactory.Projects.SelectMany(p => p.GetReferencedProjects(recursive)).Distinct().ToList();
 
             return projects;
         }
@@ -40,33 +45,17 @@
         public IEnumerable<IProject> GetProjectsContainingFiles(string[] containingFiles, string[] projectItemTypes = null)
         {
             var filesGlob = GetFilesGlob(containingFiles);
-            return _projects.Where(p => p.ContainsFiles(filesGlob, projectItemTypes));
+            return _projectFactory.Projects.Where(p => p.ContainsFiles(filesGlob, projectItemTypes));
         }
 
-        public void LoadFolder(string path = null)
+        private CompositeGlob GetFilesGlob(string[] searchPatterns)
         {
-            if (!string.IsNullOrEmpty(path))
+            if (searchPatterns == null || searchPatterns.Length == 0)
             {
-                FullPath = Path.GetFullPath(path);
+                searchPatterns = new[] { "*.*proj", "*.sln" };
             }
 
-            // TODO: support all project types
-            var projectFiles = Directory.EnumerateFileSystemEntries(FullPath, "*.csproj", SearchOption.AllDirectories);
-
-            _projects.AddRange(projectFiles.Select(projectFile => _projectFactory.Load(projectFile)));
+            return new CompositeGlob(searchPatterns.Select(s => MSBuildGlob.Parse(FullPath, s)));
         }
-
-        public void LoadSolution(string solutionFilePath)
-        {
-            var solution = new Solution(solutionFilePath, _projectFactory);
-            _solutions.Add(solution);
-
-            var projects = solution.GetProjects(true);
-
-            _projects.AddRange(projects.Except(_projects));
-        }
-
-        private CompositeGlob GetFilesGlob(string[] searchPatterns) =>
-            new CompositeGlob(searchPatterns.Select(s => MSBuildGlob.Parse(FullPath, s)));
     }
 }

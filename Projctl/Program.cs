@@ -22,6 +22,7 @@
             {
                 new Command("get-projects")
                 {
+                    new Argument<string[]>("projects"),
                     new Option("--containing-files")
                     {
                         Argument = new Argument<string[]> { Arity = new ArgumentArity(0, int.MaxValue) }
@@ -30,45 +31,38 @@
                     {
                         Argument = new Argument<string[]> { Arity = new ArgumentArity(0, int.MaxValue) }
                     }.WithAlias("-t")
-                }.WithHandler<IConsole, FileInfo, string[], string[]>(GetProjects),
+                }.WithHandler<IConsole, string[], string[], string[]>(GetProjects),
                 new Command("get-project-references")
                 {
-                    new Argument<string[]>("for-projects"), new Option<bool>("--recursive").WithAlias("-r")
-                }.WithHandler<IConsole, FileInfo, string[], bool>(GetProjectReferences)
-            }.WithGlobalOption(new Option("--solution") { Argument = new Argument<FileInfo>().ExistingOnly() }.WithAlias("-s"));
+                    new Argument<string[]>("projects"), new Option<bool>("--recursive").WithAlias("-r")
+                }.WithHandler<IConsole, string[], bool>(GetProjectReferences)
+            };
 
-        private static Codebase GetCodebase(FileInfo solution)
+        private static Codebase GetCodebase(string[] projects)
         {
             var codebase = new Codebase(new ProjectFactory());
 
-            if (solution != null)
-            {
-                codebase.LoadSolution(solution.FullName);
-            }
-            else
-            {
-                codebase.LoadFolder();
-            }
+            codebase.Discover(projects);
 
             return codebase;
         }
 
-        private static void GetProjectReferences(IConsole console, FileInfo solution, string[] forProjects, bool recursive)
+        private static void GetProjectReferences(IConsole console, string[] projects, bool recursive)
         {
-            var codebase = GetCodebase(solution);
+            var codebase = GetCodebase(projects);
 
-            var projects = codebase.GetProjectReferences(forProjects, recursive);
+            var projectReferences = codebase.GetProjectReferences(recursive);
 
-            WriteProjects(console, codebase, projects);
+            WriteProjects(console, codebase, projectReferences);
         }
 
-        private static void GetProjects(IConsole console, FileInfo solution, string[] containingFiles, string[] projectItemTypes)
+        private static void GetProjects(IConsole console, string[] projects, string[] containingFiles, string[] projectItemTypes)
         {
-            var codebase = GetCodebase(solution);
+            var codebase = GetCodebase(projects);
 
-            var projects = codebase.GetProjectsContainingFiles(containingFiles, projectItemTypes);
+            var projectsContainingFiles = codebase.GetProjectsContainingFiles(containingFiles, projectItemTypes);
 
-            WriteProjects(console, codebase, projects);
+            WriteProjects(console, codebase, projectsContainingFiles);
         }
 
         private static async Task<int> Main(string[] args)

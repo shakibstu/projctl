@@ -67,7 +67,7 @@
             }
 
             _referencedProjects = _project.GetProjectReferences()
-                .Select(p => _projectFactory.Load(Path.GetFullPath(Path.Combine(DirectoryPath, p.EvaluatedInclude))))
+                .Select(p => _projectFactory.LoadProject(Path.GetFullPath(Path.Combine(DirectoryPath, p.EvaluatedInclude))))
                 .Where(p => p != null)
                 .Distinct()
                 .ToList();

@@ -2,6 +2,7 @@
 {
     #region Namespace Imports
 
+    using System;
     using System.Collections.Generic;
     using System.IO;
 
@@ -13,13 +14,32 @@
     public class ProjectFactory : IProjectFactory
     {
         private readonly Dictionary<string, IProject> _projectsByFileName = new Dictionary<string, IProject>();
+        private readonly Dictionary<string, ISolution> _solutionsByFileName = new Dictionary<string, ISolution>();
         private ProjectCollection _projectCollection;
 
         public ProjectFactory() =>
             _projectCollection = new ProjectCollection(ToolsetDefinitionLocations.Local | ToolsetDefinitionLocations.Registry);
 
+        public IEnumerable<IProject> Projects => _projectsByFileName.Values;
 
-        public IProject Load(string projectFile)
+        public IEnumerable<ISolution> Solutions => _solutionsByFileName.Values;
+
+        public bool Load(string fileName)
+        {
+            if (fileName.EndsWith(".sln", StringComparison.OrdinalIgnoreCase))
+            {
+                return LoadSolution(fileName) != null;
+            }
+
+            if (Path.GetExtension(fileName).EndsWith("proj", StringComparison.OrdinalIgnoreCase))
+            {
+                return LoadProject(fileName) != null;
+            }
+
+            return false;
+        }
+
+        public IProject LoadProject(string projectFile)
         {
             projectFile = Path.GetFullPath(projectFile);
 
@@ -56,6 +76,31 @@
             _projectsByFileName.Add(projectFile, project);
 
             return project;
+        }
+
+
+        public ISolution LoadSolution(string solutionFile)
+        {
+            solutionFile = Path.GetFullPath(solutionFile);
+
+            ISolution solution;
+
+            if (_solutionsByFileName.TryGetValue(solutionFile, out solution))
+            {
+                return solution;
+            }
+
+            if (!File.Exists(solutionFile))
+            {
+                return null;
+            }
+
+            solution = new Solution(solutionFile, this);
+            _solutionsByFileName.Add(solutionFile, solution);
+
+            solution.GetProjects();
+
+            return solution;
         }
     }
 }

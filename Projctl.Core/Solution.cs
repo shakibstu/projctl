@@ -49,7 +49,7 @@
 
             foreach (var projectInSolution in _file.GetMsBuildProjects())
             {
-                var project = _projectFactory.Load(projectInSolution.AbsolutePath);
+                var project = _projectFactory.LoadProject(projectInSolution.AbsolutePath);
 
                 if (project == null)
                 {
