@@ -18,25 +18,25 @@ namespace Projctl.Test
         public async Task ShouldFindOneProjectContainingCompileProjectItemInSolution()
         {
             await InvokeAsync(
-                $"get-projects {TestSlnPath} --containing-files {TestProjectAClass1Path}\n{TestProjectAClass2Path} --project-item-types Compile");
+                $"get-projects {TestSlnPath} --containing-files {ProjectAClass1Path}\n{ProjectAClass2Path} --project-item-types Compile");
 
-            Out.Should().HaveCount(1).And.Contain(TestProjectA);
+            Out.Should().HaveCount(1).And.Contain(ProjectA);
         }
 
         [TestMethod]
         public async Task ShouldFindOneProjectContainingFileInFolder()
         {
-            await InvokeAsync($"get-projects --containing-files {TestProjectAClass1Path}\n{TestProjectAClass2Path}");
+            await InvokeAsync($"get-projects --containing-files {ProjectAClass1Path}\n{ProjectAClass2Path}");
 
-            Out.Should().HaveCount(1).And.Contain(TestProjectA);
+            Out.Should().HaveCount(1).And.Contain(ProjectA);
         }
 
         [TestMethod]
         public async Task ShouldFindOneProjectContainingFileInSolution()
         {
-            await InvokeAsync($"get-projects {TestSlnPath} --containing-files {TestProjectAClass1Path}\n{TestProjectAClass2Path}");
+            await InvokeAsync($"get-projects {TestSlnPath} --containing-files {ProjectAClass1Path}\n{ProjectAClass2Path}");
 
-            Out.Should().HaveCount(1).And.Contain(TestProjectA);
+            Out.Should().HaveCount(1).And.Contain(ProjectA);
         }
     }
 }

@@ -27,7 +27,7 @@
         {
             var filesGlob = GetFilesGlob(projects);
 
-            var files = Directory.EnumerateFileSystemEntries(FullPath, "*.*", SearchOption.AllDirectories).Where(f => filesGlob.IsMatch(f));
+            var files = Directory.EnumerateFiles(FullPath, "*.*", SearchOption.AllDirectories).Where(f => filesGlob.IsMatch(f));
 
             foreach (var file in files)
             {
@@ -52,7 +52,7 @@
         {
             if (searchPatterns == null || searchPatterns.Length == 0)
             {
-                searchPatterns = new[] { "*.*proj", "*.sln" };
+                searchPatterns = new[] { "**\\*.*proj", "**\\*.sln" };
             }
 
             return new CompositeGlob(searchPatterns.Select(s => MSBuildGlob.Parse(FullPath, s)));

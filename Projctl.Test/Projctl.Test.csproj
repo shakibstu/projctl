@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="powershell &quot;Copy-Item -Path $(SolutionDir)TestSolution -Destination $(TargetDir)TestCodebase -Force -Recurse&quot;" />
+    <Exec Command="powershell &quot;Copy-Item -Path $(SolutionDir)TestCodebase -Destination $(TargetDir) -Force -Recurse&quot;" />
   </Target>
 
 </Project>

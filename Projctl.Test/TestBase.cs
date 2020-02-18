@@ -17,9 +17,9 @@ namespace Projctl.Test
     [TestClass]
     public class TestBase
     {
-        protected const string TestProjectA = "TestSolution\\TestProjectA\\TestProjectA.csproj";
-        protected const string TestProjectAClass1Path = "TestSolution\\TestProjectA\\Class1.cs";
-        protected const string TestProjectAClass2Path = "TestSolution\\TestProjectA\\Class2.cs";
+        protected const string ProjectA = "TestSolution\\ProjectA\\ProjectA.csproj";
+        protected const string ProjectAClass1Path = "TestSolution\\ProjectA\\Class1.cs";
+        protected const string ProjectAClass2Path = "TestSolution\\ProjectA\\Class2.cs";
         protected const string TestSlnPath = "TestSolution\\Test.sln";
 
         private TestConsole _console;

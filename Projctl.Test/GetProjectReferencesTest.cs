@@ -15,7 +15,7 @@
         {
             await InvokeAsync($"get-project-references ");
 
-            Out.Should().HaveCount(1).And.Contain(TestProjectA);
+            Out.Should().HaveCount(1).And.Contain(ProjectA);
         }
     }
 }
