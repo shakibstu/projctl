@@ -2,7 +2,19 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>projctl</ToolCommandName>
+    <Authors>Roman Novitskiy</Authors>
+    <Description>A DotNet global tool based on MSBuild to manipulate source code projects.</Description>
+    <Copyright>Copyright Roman Novitskiy 2020</Copyright>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/4ux-nbIx/projctl</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/4ux-nbIx/projctl</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>dotnet cli dotnet-cli global tool msbuild</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +24,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Projctl.Core\Projctl.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
