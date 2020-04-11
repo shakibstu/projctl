@@ -10,11 +10,12 @@
     <Description>A DotNet global tool based on MSBuild to manipulate source code projects.</Description>
     <Copyright>Copyright Roman Novitskiy 2020</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <PackageReleaseNotes>Changed get-projects command option names and added --recursive option.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/4ux-nbIx/projctl</PackageProjectUrl>
     <RepositoryUrl>https://github.com/4ux-nbIx/projctl</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>dotnet cli dotnet-cli global tool msbuild</PackageTags>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
