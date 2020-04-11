@@ -20,31 +20,21 @@
         public static RootCommand BuildCli() =>
             new RootCommand
             {
-                new Command("get-projects")
-                {
-                    new Argument<string[]>("projects"),
-                    new Option("--containing-files")
-                    {
-                        Argument = new Argument<string[]> { Arity = new ArgumentArity(0, int.MaxValue) }
-                    }.WithAlias("-f"),
-                    new Option("--project-item-types")
-                    {
-                        Argument = new Argument<string[]> { Arity = new ArgumentArity(0, int.MaxValue) }
-                    }.WithAlias("-t")
-                }.WithHandler<IConsole, string[], string[], string[]>(GetProjects),
-                new Command("get-project-references")
-                {
-                    new Argument<string[]>("projects"),
-                    new Option<bool>("--recursive").WithAlias("-r"),
-                    new Option<bool>("--include-root-projects")
-                }.WithHandler<IConsole, string[], bool, bool>(GetProjectReferences),
-                new Command("create-solution-filter")
-                {
-                    new Argument<string[]>("projects"),
-                    new Option<FileInfo>("--solution").ExistingOnly(),
-                    new Option<string>("--destination")
-                }.WithHandler<IConsole, string[], FileInfo, string>(CreateSolutionFilter)
+                new Command("get-projects").WithProjectFilterArgument()
+                    .WithOption<string[]>("--project-items",      o => o.WithAlias("-i"))
+                    .WithOption<string[]>("--project-item-types", o => o.WithAlias("-t"))
+                    .WithRecursiveOption()
+                    .WithHandler<IConsole, string[], string[], string[], bool>(GetProjects),
+                new Command("get-project-references").WithProjectFilterArgument()
+                    .WithOption<bool>("--include-root-projects")
+                    .WithRecursiveOption()
+                    .WithHandler<IConsole, string[], bool, bool>(GetProjectReferences),
+                new Command("create-solution-filter").WithProjectFilterArgument()
+                    .WithOption<FileInfo>("--solution", o => o.ExistingOnly())
+                    .WithOption<string>("--destination")
+                    .WithHandler<IConsole, string[], FileInfo, string>(CreateSolutionFilter)
             };
+
 
         private static void CreateSolutionFilter(IConsole console, string[] projects, FileInfo solution, string destination)
         {
@@ -79,11 +69,16 @@
             WriteProjects(console, codebase, projectReferences);
         }
 
-        private static void GetProjects(IConsole console, string[] projects, string[] containingFiles, string[] projectItemTypes)
+        private static void GetProjects(
+            IConsole console,
+            string[] projects,
+            string[] projectItems,
+            string[] projectItemTypes,
+            bool recursive)
         {
             var codebase = GetCodebase(projects);
 
-            var projectsContainingFiles = codebase.GetProjectsContainingFiles(containingFiles, projectItemTypes);
+            var projectsContainingFiles = codebase.GetProjectsContainingItems(projectItems, projectItemTypes, recursive);
 
             WriteProjects(console, codebase, projectsContainingFiles);
         }

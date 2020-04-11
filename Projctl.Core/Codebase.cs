@@ -7,6 +7,8 @@
     using System.Linq;
     using System.Text;
 
+    using JetBrains.Annotations;
+
     using Microsoft.Build.Globbing;
 
     using Newtonsoft.Json;
@@ -36,7 +38,7 @@
         public string CreateSolutionFilter(FileInfo solutionFileInfo, string[] projectsGlob, string relativeTo = null)
         {
             var solution = _projectFactory.LoadSolution(solutionFileInfo.FullName);
-            var filesGlob = GetFilesGlob(projectsGlob);
+            var filesGlob = GetProjectFilesGlob(projectsGlob);
             var projects = solution.GetProjects(true).Where(p => filesGlob.IsMatch(p.FullPath));
 
             projects = GetProjectReferences(projects, true, true);
@@ -55,7 +57,7 @@
 
         public void Discover(string[] projects)
         {
-            var filesGlob = GetFilesGlob(projects);
+            var filesGlob = GetProjectFilesGlob(projects);
 
             var files = Directory.EnumerateFiles(FullPath, "*.*", SearchOption.AllDirectories).Where(f => filesGlob.IsMatch(f));
 
@@ -68,10 +70,25 @@
         public IEnumerable<IProject> GetProjectReferences(bool recursive, bool includeRootProjects) =>
             GetProjectReferences(_projectFactory.Projects.ToList(), recursive, includeRootProjects);
 
-        public IEnumerable<IProject> GetProjectsContainingFiles(string[] containingFiles, string[] projectItemTypes = null)
+        public IEnumerable<IProject> GetProjectsContainingItems(
+            string[] projectItems,
+            string[] projectItemTypes = null,
+            bool recursive = false)
         {
-            var filesGlob = GetFilesGlob(containingFiles);
-            return _projectFactory.Projects.Where(p => p.ContainsFiles(filesGlob, projectItemTypes));
+            int projectsCount;
+            var projects = new List<IProject>();
+
+            do
+            {
+                projectsCount = projects.Count;
+                var filesGlob = GetFilesGlob(projectItems);
+                projects.AddRange(_projectFactory.Projects.Where(p => p.ContainsItems(filesGlob, projectItemTypes)).Except(projects));
+
+                projectItems = projectItems.Concat(projects.Select(p => p.FullPath)).ToArray();
+            }
+            while (recursive && projectsCount < projects.Count);
+
+            return projects;
         }
 
         private static IEnumerable<IProject> GetProjectReferences(
@@ -91,14 +108,19 @@
             return referencedProjects.Distinct();
         }
 
-        private CompositeGlob GetFilesGlob(string[] searchPatterns)
+        private CompositeGlob GetFilesGlob([NotNull] IEnumerable<string> searchPatterns)
+        {
+            return new CompositeGlob(searchPatterns.Select(s => MSBuildGlob.Parse(FullPath, s)));
+        }
+
+        private CompositeGlob GetProjectFilesGlob(string[] searchPatterns)
         {
             if (searchPatterns == null || searchPatterns.Length == 0)
             {
                 searchPatterns = new[] { "**\\*.*proj", "**\\*.sln" };
             }
 
-            return new CompositeGlob(searchPatterns.Select(s => MSBuildGlob.Parse(FullPath, s)));
+            return GetFilesGlob(searchPatterns);
         }
     }
 }
